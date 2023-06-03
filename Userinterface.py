@@ -17,13 +17,13 @@ class Menu(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.grid()
-        self.create_Button()
+        self.målinger_Button()
         self.search_Button()
         self.pulse_box()
         self.update_puls()
         self.graf()
 
-    def create_Button(self):
+    def målinger_Button(self):
         menu_Button1 = tk.Button(self, text='Tidligere målinger')
         menu_Button1.grid(row=2, column=0, sticky='nswe')
 
