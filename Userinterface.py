@@ -13,7 +13,6 @@ class App(tk.Tk):
 
         self.mainloop()
 
-
 class Menu(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -40,14 +39,15 @@ class Menu(tk.Frame):
         search_button.grid(row=0, column=4, sticky='nswe')
 
     def pulse_box(self):
-        self.label = tk.Label(self, text='Puls')
-        self.label.grid(row=3, column=0, sticky='nswe')
+        self.label1 = tk.Label(self, text='Puls')
+        self.label1.grid(row=3, column=0, sticky='nswe')
 
     def update_puls(self):
-        value = round(puls.getVitals())
-        self.label.config(text=value)
+        value=round(puls.getVitals())
+        self.label2=tk.Label(self, text=value)
+        self.label2.config(text=value)
         self.after(1000, self.update_puls)
-        self.label.grid(row=4, column=0, sticky='nswe')
+        self.label2.grid(row=4, column=0, sticky='nswe',pady=2)
 
     def graf(self):
         self.label_graf = tk.Label(self, text='Graf')
