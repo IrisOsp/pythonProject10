@@ -1,4 +1,6 @@
 import tkinter as tk
+from puls import*
+
 
 class App(tk.Tk):
     def __init__(self, title, size,):
@@ -21,6 +23,7 @@ class Menu(tk.Frame):
         self.create_Button()
         self.search_Button()
         self.pulse_box()
+        self.update_puls()
         self.graf()
 
     def create_Button(self):
@@ -41,9 +44,11 @@ class Menu(tk.Frame):
     def pulse_box(self):
         self.label=tk.Label(self, text='Puls')
         self.label.grid(row=3, column=0, sticky='nswe')
-        self.entry = tk.Entry(self, width=5)
-        self.entry.grid(row=4, column=0, sticky='nswe')
 
+    def update_puls(self):
+        self.value = round(puls.getVitals())
+        self.label.config(text=self.value)
+        self.after(1000, self.update_puls)
 
     def graf(self):
         self.label=tk.Label(self, text='Graf')
@@ -51,6 +56,7 @@ class Menu(tk.Frame):
         self.entry = tk.Entry(self, width=5)
         self.entry.grid(row=4, column=2, sticky='nswe')
         
+
 
 
 App('EKG',(1200,600))
