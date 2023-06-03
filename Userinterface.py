@@ -1,20 +1,18 @@
 import tkinter as tk
-from puls import*
+from puls import *
 
 
 class App(tk.Tk):
-    def __init__(self, title, size,):
-        #main setup
+    def __init__(self, title, size):
         super().__init__()
         self.title(title)
         self.geometry(f'{size[0]}x{size[1]}')
-        self.minsize(600,600)
+        self.minsize(600, 600)
 
-        #widgets
-        self.menu=Menu(self)
+        self.menu = Menu(self)
 
-        #run
         self.mainloop()
+
 
 class Menu(tk.Frame):
     def __init__(self, parent):
@@ -27,38 +25,35 @@ class Menu(tk.Frame):
         self.graf()
 
     def create_Button(self):
-        menu_Button1=tk.Button(self,text='Tidligere målinger')
+        menu_Button1 = tk.Button(self, text='Tidligere målinger')
         menu_Button1.grid(row=2, column=0, sticky='nswe')
 
     def search_Button(self):
-            def search():
-                search_query = self.entry.get()
-                print("Søger efter:", search_query)
+        def search():
+            search_query = self.entry.get()
+            print("Søger efter:", search_query)
 
-            self.entry = tk.Entry(self)
-            self.entry.grid(row=0, column=0, sticky='nswe', columnspan=3)
+        self.entry = tk.Entry(self)
+        self.entry.grid(row=0, column=0, sticky='nswe', columnspan=3)
 
-            search_button = tk.Button(self, text="Søg", command=search)
-            search_button.grid(row=0, column=4, sticky='nswe')
-        
+        search_button = tk.Button(self, text="Søg", command=search)
+        search_button.grid(row=0, column=4, sticky='nswe')
+
     def pulse_box(self):
-        self.label=tk.Label(self, text='Puls')
+        self.label = tk.Label(self, text='Puls')
         self.label.grid(row=3, column=0, sticky='nswe')
 
     def update_puls(self):
-        self.value = round(puls.getVitals())
-        self.label.config(text=self.value)
+        value = round(puls.getVitals())
+        self.label.config(text=value)
         self.after(1000, self.update_puls)
+        self.label.grid(row=4, column=0, sticky='nswe')
 
     def graf(self):
-        self.label=tk.Label(self, text='Graf')
-        self.label.grid(row=3, column=2, sticky='nswe')
+        self.label_graf = tk.Label(self, text='Graf')
+        self.label_graf.grid(row=3, column=2, sticky='nswe')
         self.entry = tk.Entry(self, width=5)
         self.entry.grid(row=4, column=2, sticky='nswe')
-        
 
 
-
-App('EKG',(1200,600))
-
-
+App('EKG', (1200, 600))
