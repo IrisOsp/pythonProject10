@@ -10,13 +10,13 @@ class App(tk.Tk):
         self.minsize(600, 600)
 
         self.menu = Menu(self)
-
+        self.menu.search_Button()
         self.mainloop()
 
 class Menu(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.grid()
+        self.grid(sticky='nswe')
         self.målinger_Button()
         self.search_Button()
         self.pulse_box()
@@ -32,11 +32,13 @@ class Menu(tk.Frame):
             search_query = self.entry.get()
             print("Søger efter:", search_query)
 
-        self.entry = tk.Entry(self)
+        self.entry_var = tk.StringVar()
+        self.entry=tk.Entry(self,textvariable=self.entry_var)
         self.entry.grid(row=0, column=0, sticky='nswe', columnspan=3)
+        self.entry.bind('<Return>',lambda event: search())
 
         search_button = tk.Button(self, text="Søg", command=search)
-        search_button.grid(row=0, column=4, sticky='nswe')
+        search_button.grid(row=0, column=20, sticky='nswe')
 
     def pulse_box(self):
         self.label1 = tk.Label(self, text='Puls')
@@ -44,7 +46,7 @@ class Menu(tk.Frame):
 
     def update_puls(self):
         value=round(puls.getVitals())
-        self.label2=tk.Label(self, text=value,width=20, height=5)
+        self.label2=tk.Label(self, text=value,bg="white", fg="black",width=20, height=5)
         self.label2.config(text=value)
         self.after(1000, self.update_puls)
         self.label2.grid(row=4, column=0, sticky='nswe',pady=2)
