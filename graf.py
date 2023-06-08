@@ -1,3 +1,5 @@
+import threading
+
 class buffer():
     list = []
     size = 0
@@ -7,8 +9,7 @@ class que():
     que = []
     size = 0  # lock
 def put(self.b):
-    put()
-    get()
+def get()
     wait
     notify
 
@@ -18,8 +19,10 @@ class sensor():
         with open("H_data.txt", "r") as file:
             linje = file.readline()
 
+    def run(): #tråd
 
-b = buffer
+
+
 
 k=que()
 k1=que()
@@ -32,4 +35,7 @@ class db():
 
 class graph():
     plot.....
+
+
+b = buffer()
 
