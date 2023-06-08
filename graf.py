@@ -1,10 +1,14 @@
 
-
 class sensor():
     list = []
     size = 0
     max = 600
-    load_data(H_data.txt)
+    def load_data():
+        with open("H_data.txt", "r") as file:
+            linje=file.readline()
+
+
+
 
 
 class buffer():
