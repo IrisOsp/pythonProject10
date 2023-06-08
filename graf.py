@@ -1,36 +1,31 @@
-import threading
-import time
-import matplotlib.pyplot as plt
 
 
-class GraphThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.data = []
-        self.running = True
+class sensor():
+    list = []
+    size = 0
+    max = 600
+    load_data(H_data.txt)
 
-    def run(self):
-        while self.running:
-            # Henter data fra databasen
-            data = self.fetch_data_from_database()
 
-            # Opretter graf
-            plt.plot(data)
+class buffer():
+    list = []
+    size = 0
+    max = 600
 
-            # Opdatere graf
-            plt.pause(0.001)
 
-            time.sleep(0.5)
+class que():
+    que = []
+    size = 0  # lock
+    put()
+    get()
 
-        plt.show()
+    wait
+    notify
 
-    def fetch_data_from_database():
-        with open("h_data.txt", "r") as file:
-            data = file.read()
+class db():
+    tråd
 
-        data = data.strip().split("\n")
 
-        return data
+class graph():
+    plot.....
 
-    def stop(self):
-        self.running = False
