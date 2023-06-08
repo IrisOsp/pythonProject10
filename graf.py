@@ -37,5 +37,3 @@ class graph():
     plot.....
 
 
-b = buffer()
-
