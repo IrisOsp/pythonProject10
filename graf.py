@@ -11,17 +11,16 @@ class Buffer:
     def __init__(self, que):
         self.buffer_list = []
         self.size = 0
-        self.max_size = 600
+        self.max_size = 1200
         self.que = que
 
     def add_data(self, data):
         self.buffer_list.append(data)
         self.size += 1
-        if self.size == 12:
+        if self.size == 1200:
             self.que.put(self.buffer_list[:])  # Send en kopi af de seneste 12 observationer
             self.buffer_list = []
             self.size = 0
-
 
 class Que:
     def __init__(self):
@@ -87,19 +86,19 @@ class DB(threading.Thread):
 class Graph:
     def __init__(self, que, ax):
         self.que = que
-        self.data = []
+        self.buffer = []
         self.ax = ax
 
     def plot_graph(self):
         obs = self.que.get()
         if obs is not None:
-            self.data.extend(obs)
-            if len(self.data) >= 6:
-                x = list(range(len(self.data) - 6, len(self.data)))  # X-værdier for de seneste 6 værdier
-                y = self.data[-6:]  # De seneste 6 værdier
+            self.buffer.extend(obs)
+            if len(self.buffer) >= 1200:
+                x = list(range(len(self.buffer) - 1200, len(self.buffer)))  # X-værdier for de seneste 6 værdier
+                y = self.buffer[-1200:]  # De seneste 6 værdier
                 self.ax.clear()
                 self.ax.plot(x, y)
-                self.data = self.data[6:]
+                self.buffer = self.buffer[6:]
 
 
 class MyGraph(tk.Frame):
@@ -115,12 +114,13 @@ class MyGraph(tk.Frame):
         self.canvas = FigureCanvasTkAgg(self.figure, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        self.graph = Graph(self.que, self.ax)
+        self.graph = Graph(self.que, self.ax)  # Opretter Graph-objektet
 
     def update_graph(self):
         self.graph.plot_graph()
         self.canvas.draw()
         self.after(1000, self.update_graph)
+
 
 
 def main():
