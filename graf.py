@@ -1,10 +1,13 @@
 import threading
 import time
 import tkinter as tk
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-class Buffer():
+
+class Buffer:
     def __init__(self, que):
         self.buffer_list = []
         self.size = 0
@@ -14,10 +17,13 @@ class Buffer():
     def add_data(self, data):
         self.buffer_list.append(data)
         self.size += 1
-        self.que.put(data)
+        if self.size == 12:
+            self.que.put(self.buffer_list[:])  # Send en kopi af de seneste 12 observationer
+            self.buffer_list = []
+            self.size = 0
 
 
-class Que():
+class Que:
     def __init__(self):
         self.que = []
         self.size = 0
@@ -42,14 +48,22 @@ class Que():
 
 
 class Sensor(threading.Thread):
-    def __init__(self, que):
+    def __init__(self, que, buffer):
         threading.Thread.__init__(self)
         self.que = que
+        self.buffer = buffer
 
     def load_data(self):
-        with open("H_data.txt", "r") as file:
-            line = file.readline()
-            self.que.put(float(line))  # Send data direkte til køen som float-værdi
+        with open("h_data.txt", "r") as file:
+            lines = file.readlines()
+            for line in lines:
+                line = line.strip()
+                if line:
+                    try:
+                        data = list(map(float, line.split()))  # Ændret til at håndtere flere tal ad gangen
+                        self.buffer.add_data(data)
+                    except ValueError:
+                        print("Invalid data:", repr(line))
 
     def run(self):
         while True:
@@ -66,24 +80,26 @@ class DB(threading.Thread):
         while True:
             obs = self.que.get()
             if obs is not None:
-                # Lagre data i databasen
                 pass
-            time.sleep(0.1)
+            time.sleep(0.5)
 
 
-class Graph():
-    def __init__(self, que):
+class Graph:
+    def __init__(self, que, ax):
         self.que = que
         self.data = []
+        self.ax = ax
 
     def plot_graph(self):
         obs = self.que.get()
         if obs is not None:
-            self.data.append(obs)  # Gem data til plotning
-
-            # Plot grafen ved hjælp af Matplotlib
-            plt.clf()  # Clear the previous plot
-            plt.plot(self.data)
+            self.data.extend(obs)
+            if len(self.data) >= 6:
+                x = list(range(len(self.data) - 6, len(self.data)))  # X-værdier for de seneste 6 værdier
+                y = self.data[-6:]  # De seneste 6 værdier
+                self.ax.clear()
+                self.ax.plot(x, y)
+                self.data = self.data[6:]
 
 
 class MyGraph(tk.Frame):
@@ -91,17 +107,20 @@ class MyGraph(tk.Frame):
         tk.Frame.__init__(self, master)
         self.master = master
         self.que = Que()
-        self.graph = Graph(self.que)
-
-        self.figure = plt.figure(figsize=(8, 6))
+        self.figure = plt.figure(figsize=(5, 2))
         self.ax = self.figure.add_subplot(111)
+        self.ax.xaxis.set_visible(True)
+        self.ax.yaxis.set_visible(True)
+        self.ax.tick_params(axis='both', which='both', labelsize=8)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.graph = Graph(self.que, self.ax)
 
     def update_graph(self):
         self.graph.plot_graph()
         self.canvas.draw()
-        self.after(500, self.update_graph)
+        self.after(1000, self.update_graph)
 
 
 def main():
@@ -110,17 +129,14 @@ def main():
     canvas = MyGraph(root)
     canvas.pack(fill="both", expand=True)
 
-    sensor = Sensor(canvas.que)
+    sensor = Sensor(canvas.que, Buffer(canvas.que))
     db = DB(canvas.que)
 
-    # Start de andre tråde
+    canvas.after(1000, canvas.update_graph)  # Opdater grafen efter 1 sekund
+
     sensor.start()
     db.start()
 
-    # Start opdatering af grafen
-    canvas.update_graph()
-
-    # Start hovedloop
     root.mainloop()
 
 
