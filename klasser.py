@@ -1,26 +1,37 @@
 from threading import Thread, Condition
 from time import sleep
 
+class Buffer():
+    def __init__(self):
+        self.list = []
+        self.size = 0
+        self.max = 600
 
-class buffer():
-    list = []
-    size = 0 #evt. undvære dette og skriv ind i Main (if len(list bla bla.....))
-    max = 600
+    def addData(self, data):
+        self.list.append(data)
+        self.size += 1
 
-b = buffer()
-b.list.append(1)
-print(b.list)
 
-class sensor():
+b = Buffer()
+
+
+class Sensor():
     def getData(self):
         file = open("H_data.txt", "r")
-        linje = file.readlines()
-        for i in range(len(linje)):
-            linje[i] = float(linje[i][:-2])
-        print(linje)
+        lines = file.readlines()
+        file.close()
 
-s=sensor()
-print(s.getData())
+        data = []
+        for line in lines:
+            data.append(float(line[:-2]))
+        return data
+
+
+s = Sensor()
+data = s.getData()
+b.addData(data)
+print(b.list)
+
 
 class que():
     def __init__(self):
@@ -44,7 +55,5 @@ class que():
 
 
 q1=que()
-
-
 q2=que()
 

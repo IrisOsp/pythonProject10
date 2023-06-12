@@ -1,7 +1,5 @@
 import tkinter as tk
 from puls import *
-
-
 class App(tk.Tk):
     def __init__(self, title, size):
         super().__init__()
