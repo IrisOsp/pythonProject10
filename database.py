@@ -1,5 +1,5 @@
 import sqlite3
-from graf import Que
+
 
 def oprette_db():
     # Opret forbindelse til databasen
@@ -42,23 +42,5 @@ def add_patient():
     except sqlite3.Error as e:
         print("Communication error:", e)
 
-
-def add_values(ekg):
-    try:
-        conn=sqlite3.connect('EKG_Data.db')
-        c=conn.cursor()
-        c.execute("INSERT INTO målinger(EKG) VALUES(?)",(ekg));
-        conn.commit()
-        c.close()
-        conn.close()
-
-    except sqlite3.Error as e:
-        print("Kommunikationsfejl 3")
-
-
 oprette_db()
 add_patient()
-que1=Que()
-value=que1.get()
-print()
-add_values(value)
