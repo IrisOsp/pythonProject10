@@ -32,7 +32,7 @@ data = s.getData()
 b.addData(data)
 print(b.list)
 
-
+ssss
 class que():
     def __init__(self):
         self._empty, self._value = True, 0
