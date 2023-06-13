@@ -57,7 +57,7 @@ class PulseLabel(tk.Label):
 
     def update_puls(self):
         value = round(puls.getVitals())
-        self.config(text=value)
+        self.config(text=value, font=("Helvetica", 20))
         self.after(1000, self.update_puls)
 
 
@@ -65,7 +65,7 @@ class GrafBox(tk.LabelFrame):
     def __init__(self, parent):
         super().__init__(parent, text='Graf', width=20, height=5)
         self.grid(row=3, column=2, sticky='nswe')
-        self.entry = tk.Entry(parent, width=5)
+        self.entry = tk.Entry(parent, width=50)
         self.entry.grid(row=4, column=2, sticky='nswe')
 
 

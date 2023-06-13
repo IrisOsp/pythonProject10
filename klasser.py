@@ -105,3 +105,5 @@ class Graf(tk.Frame):
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
 
+
+
