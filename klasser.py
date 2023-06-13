@@ -1,3 +1,5 @@
+import tkinter
+import tkinter as tk
 from threading import Thread, Condition
 from time import sleep
 import sqlite3
@@ -64,6 +66,7 @@ class Database:
             print("Kommunikationsfejl 3")
 
 
+
 def sensor_thread_func(buffer, queue, db_send):
     s = Sensor()
     data = s.getData()
@@ -76,7 +79,7 @@ def sensor_thread_func(buffer, queue, db_send):
 
 
 q_database = que()
-#q_graf = que()
+q_graf = que()
 
 # Oppretter en tråd for å hente data fra sensoren og legge dem til i bufferet og q1
 sensor_thread1 = Thread(target=sensor_thread_func, args=(b, q_database, Database()))
@@ -86,8 +89,19 @@ sensor_thread1.start()
 print(q_database.getData())
 
 #Laves til graf senere
-#sensor_thread2 = Thread(target=sensor_thread_func, args=(b, q_graf, Database()))
+#sensor_thread2 = Thread(target=sensor_thread_func, args=(b, q_graf, Graf()))
 #sensor_thread2.start()
 
 # Henter data fra q_graf
 #print(q_graf.getData())
+
+class Graf(tk.Frame):
+    def __init__(self, h, w, q_graf):
+        super().__init__()
+
+        self.master.title("EKG")
+        self.pack(fill=tk.BOTH, expand=True)
+        self.canvas = tk.Canvas(self, width=w, height=h, bg="white")
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+

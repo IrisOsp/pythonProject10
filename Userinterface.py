@@ -1,5 +1,7 @@
 import tkinter as tk
 from puls import *
+
+
 class App(tk.Tk):
     def __init__(self, title, size):
         super().__init__()
@@ -8,51 +10,62 @@ class App(tk.Tk):
         self.minsize(600, 600)
 
         self.menu = Menu(self)
-        self.menu.search_Button()
+        self.menu.grid(sticky='nswe')
         self.mainloop()
+
 
 class Menu(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        self.search_button = SearchButton(self)
+        self.pulse_box = PulseBox(self)
+        self.pulse_label = PulseLabel(self)
+        self.pulse_label.grid(row=3, column=0, sticky='nswe')
+        self.pulse_label.update_puls()
+        self.graf_box = GrafBox(self)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(2, weight=1)
         self.grid(sticky='nswe')
-        self.målinger_Button()
-        self.search_Button()
-        self.pulse_box()
-        self.update_puls()
-        self.graf()
 
-    def målinger_Button(self):
-        menu_Button1 = tk.Button(self, text='Tidligere målinger')
-        menu_Button1.grid(row=2, column=0, sticky='nswe')
 
-    def search_Button(self):
-        def search():
-            search_query = self.entry.get()
-            print("Søger efter:", search_query)
+class SearchButton(tk.Button):
+    def __init__(self, parent):
+        super().__init__(parent, text='Søg', command=self.search)
+        self.grid(row=0, column=20, sticky='nswe')
 
         self.entry_var = tk.StringVar()
-        self.entry=tk.Entry(self,textvariable=self.entry_var)
+        self.entry = tk.Entry(parent, textvariable=self.entry_var)
         self.entry.grid(row=0, column=0, sticky='nswe', columnspan=3)
-        self.entry.bind('<Return>',lambda event: search())
+        self.entry.bind('<Return>', lambda event: self.search())
 
-        search_button = tk.Button(self, text="Søg", command=search)
-        search_button.grid(row=0, column=20, sticky='nswe')
+    def search(self):
+        search_query = self.entry.get()
+        print("Søger efter:", search_query)
 
-    def pulse_box(self):
-        self.label1 = tk.Label(self, text='Puls')
-        self.label1.grid(row=3, column=0, sticky='nswe')
+
+class PulseBox(tk.LabelFrame):
+    def __init__(self, parent):
+        super().__init__(parent, text='Puls')
+        self.grid(row=3, column=0, sticky='nswe')
+
+
+class PulseLabel(tk.Label):
+    def __init__(self, parent):
+        super().__init__(parent, bg="white", fg="black", width=20, height=5)
+        self.config(text=round(puls.getVitals()))
 
     def update_puls(self):
-        value=round(puls.getVitals())
-        self.label2=tk.Label(self, text=value,bg="white", fg="black",width=20, height=5)
-        self.label2.config(text=value)
+        value = round(puls.getVitals())
+        self.config(text=value)
         self.after(1000, self.update_puls)
-        self.label2.grid(row=4, column=0, sticky='nswe',pady=2)
 
-    def graf(self):
-        self.label_graf = tk.Label(self, text='Graf',width=20, height=5)
-        self.label_graf.grid(row=3, column=2, sticky='nswe')
-        self.entry = tk.Entry(self, width=5)
+
+class GrafBox(tk.LabelFrame):
+    def __init__(self, parent):
+        super().__init__(parent, text='Graf', width=20, height=5)
+        self.grid(row=3, column=2, sticky='nswe')
+        self.entry = tk.Entry(parent, width=5)
         self.entry.grid(row=4, column=2, sticky='nswe')
 
 
