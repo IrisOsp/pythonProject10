@@ -3,6 +3,10 @@ import tkinter as tk
 from threading import Thread, Condition
 from time import sleep
 import sqlite3
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class Buffer():
     def __init__(self):
@@ -67,43 +71,76 @@ class Database:
 
 
 
-def sensor_thread_func(buffer, queue, db_send):
+def sensor_thread_func(buffer, queue, sender):
     s = Sensor()
     data = s.getData()
     buffer.addData(data)
     queue.putData(data)
-
+    sender.plot_graph(data)
     # Send hvert element fra listen til databasen
     for item in data:
-        db_send.sendToDatabase(item)
+        sender.sendToDatabase(item)
 
+class Graph:
+    def __init__(self, que, ax):
+        self.que = que
+        self.buffer = []
+        self.ax = ax
+
+    def plot_graph(self):
+        obs = self.que.get()
+        if obs is not None:
+            self.buffer.extend(obs)
+            if len(self.buffer) >= 800:
+                x = list(range(len(self.buffer) - 800, len(self.buffer)))  # X-værdier for de seneste 6 værdier
+                y = self.buffer[-800:]  # De seneste 6 værdier
+                self.ax.clear()
+                self.ax.plot(x, y)
+                self.buffer = self.buffer[6:]
+
+
+
+class MyGraph(tk.Frame):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.que = que()
+        self.figure = plt.figure(figsize=(5, 2))
+        self.ax = self.figure.add_subplot(111)
+        self.ax.xaxis.set_visible(True)
+        self.ax.yaxis.set_visible(True)
+        self.ax.tick_params(axis='both', which='both', labelsize=8)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
+        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        self.graph = Graph(self.que, self.ax)  # Opretter Graph-objektet
+
+    def update_graph(self):
+        self.graph.plot_graph()
+        self.canvas.draw()
+        self.after(1000, self.update_graph)
+
+db_send = Database()
+graf_send = Graph()
 
 q_database = que()
 q_graf = que()
 
 # Oppretter en tråd for å hente data fra sensoren og legge dem til i bufferet og q1
-sensor_thread1 = Thread(target=sensor_thread_func, args=(b, q_database, Database()))
+
+sensor_thread1 = Thread(target=sensor_thread_func, args=(b, q_database, db_send, graf_send))
 sensor_thread1.start()
+
 
 # Henter data fra q_database
 print(q_database.getData())
 
 #Laves til graf senere
-#sensor_thread2 = Thread(target=sensor_thread_func, args=(b, q_graf, Graf()))
-#sensor_thread2.start()
+
 
 # Henter data fra q_graf
-#print(q_graf.getData())
+print(q_graf.getData())
 
-class Graf(tk.Frame):
-    def __init__(self, h, w, q_graf):
-        super().__init__()
-
-        self.master.title("EKG")
-        self.pack(fill=tk.BOTH, expand=True)
-        self.canvas = tk.Canvas(self, width=w, height=h, bg="white")
-        self.canvas.pack(fill=tk.BOTH, expand=True)
-
-
-
+sensor_thread2 = Thread(target=sensor_thread_func, args=(b, q_database, graf_send, db_send))
+sensor_thread2.start()
 

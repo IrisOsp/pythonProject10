@@ -1,4 +1,3 @@
-import tkinter
 import tkinter as tk
 from threading import Thread, Condition
 from time import sleep
@@ -57,7 +56,7 @@ class Database:
         try:
             conn = sqlite3.connect('EKG_Data.db')
             c = conn.cursor()
-            c.execute("INSERT INTO målinger(EKG) VALUES(?)", (ekg,))
+            c.execute("INSERT INTO målinger(EKG) VALUES(?)", (ekg)) #Person_id indsættes i målinger og
             conn.commit()
             c.close()
             conn.close()
