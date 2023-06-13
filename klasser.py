@@ -107,3 +107,4 @@ class Graf(tk.Frame):
 
 
 
+ujjj
