@@ -72,11 +72,16 @@ def sensor_thread_func(buffer, queue, db_send):
     data = s.getData()
     buffer.addData(data)
     queue.putData(data)
-
     # Send hvert element fra listen til databasen
     for item in data:
         db_send.sendToDatabase(item)
 
+def sensor_thread_func2(buffer, queue, graph_send):
+    s = Sensor()
+    data = s.getData()
+    buffer.addData(data)
+    queue.putData(data)
+    graph_send.draw_graph(data)
 
 q_database = que()
 q_graf = que()
@@ -88,22 +93,52 @@ sensor_thread1.start()
 # Henter data fra q_database
 print(q_database.getData())
 
+class Graph(tk.Canvas):
+    def __init__(self, parent, data, width, height):
+        super().__init__(parent, width=width, height=height, bg="white")
+        self.data = sensor_thread2
+        self.width =2000
+        self.height = 500
+
+    def draw_graph(self):
+        if not self.data:
+            return
+
+        # Find den mindste og største værdi i listen af tal
+        min_val = min(self.data)
+        max_val = max(self.data)
+
+        # Beregn skalaen for x- og y-aksen
+        x_scale = self.width / len(self.data)
+        y_scale = self.height / (max_val - min_val)
+
+        # Tegn graflinjen
+        prev_x = 0
+        prev_y = self.height - (self.data[0] - min_val) * y_scale
+
+        for i in range(1, len(self.data)):
+            x = i * x_scale
+            y = self.height - (self.data[i] - min_val) * y_scale
+
+            self.create_line(prev_x, prev_y, x, y, fill="blue")
+            prev_x = x
+            prev_y = y
+
 #Laves til graf senere
-#sensor_thread2 = Thread(target=sensor_thread_func, args=(b, q_graf, Graf()))
-#sensor_thread2.start()
+sensor_thread2 = Thread(target=sensor_thread_func2, args=(b, q_graf, Graph()))
+sensor_thread2.start()
 
 # Henter data fra q_graf
-#print(q_graf.getData())
+print(q_graf.getData())
 
-class Graf(tk.Frame):
-    def __init__(self, h, w, q_graf):
-        super().__init__()
+data=sensor_thread2
 
-        self.master.title("EKG")
-        self.pack(fill=tk.BOTH, expand=True)
-        self.canvas = tk.Canvas(self, width=w, height=h, bg="white")
-        self.canvas.pack(fill=tk.BOTH, expand=True)
+root = tk.Tk()
+graph = Graph(root, data)
+graph.pack()
 
+graph.draw_graph()
 
+root.mainloop()
 
 
