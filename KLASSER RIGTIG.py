@@ -64,6 +64,21 @@ class Database:
             print("Kommunikationsfejl 3")
 
 
+class Graph:
+    def draw_graph(self, ekg):
+        x_scale = 1
+        y_scale = ekg
+
+
+
+
+
+
+
+
+
+
+
 
 def sensor_thread_func(buffer, queue, db_send):
     s = Sensor()
@@ -91,50 +106,6 @@ sensor_thread1.start()
 # Henter data fra q_database
 print(q_database.getData())
 
-class Graph(tk.Canvas):
-    def __init__(self, parent, data, width, height):
-        super().__init__(parent, width=width, height=height, bg="white")
-        self.data = sensor_thread2
-        self.width =2000
-        self.height = 500
 
-    def draw_graph(self):
-        if not self.data:
-            return
 
-        # Find den mindste og største værdi i listen af tal
-        min_val = min(self.data)
-        max_val = max(self.data)
 
-        # Beregn skalaen for x- og y-aksen
-        x_scale = self.width / len(self.data)
-        y_scale = self.height / (max_val - min_val)
-
-        # Tegn graflinjen
-        prev_x = 0
-        prev_y = self.height - (self.data[0] - min_val) * y_scale
-
-        for i in range(1, len(self.data)):
-            x = i * x_scale
-            y = self.height - (self.data[i] - min_val) * y_scale
-
-            self.create_line(prev_x, prev_y, x, y, fill="blue")
-            prev_x = x
-            prev_y = y
-
-#Laves til graf senere
-sensor_thread2 = Thread(target=sensor_thread_func2, args=(b, q_graf, Graph()))
-sensor_thread2.start()
-
-# Henter data fra q_graf
-print(q_graf.getData())
-
-data=sensor_thread2
-
-root = tk.Tk()
-graph = Graph(root, data)
-graph.pack()
-
-graph.draw_graph()
-
-root.mainloop()
