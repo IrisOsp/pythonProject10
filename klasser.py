@@ -1,12 +1,7 @@
 import tkinter
 import tkinter as tk
 from threading import Thread, Condition
-from time import sleep
 import sqlite3
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class Buffer():
     def __init__(self):
