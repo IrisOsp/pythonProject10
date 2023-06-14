@@ -1,6 +1,5 @@
-from puls import *
 from klasser7 import *
-
+from puls import *
 class App(tk.Tk):
     def __init__(self, title, size):
         super().__init__()
@@ -113,13 +112,12 @@ class PulseLabel(tk.Label):
         self.config(text=value, font=("Helvetica", 20))
         self.after(1000, self.update_puls)
 
-
 class GrafBox(tk.LabelFrame):
     def __init__(self, parent):
         super().__init__(parent, text='Graf', width=200, height=5)
         self.grid(row=0, column=2, rowspan=2, sticky='nswe')
 
-        self.graph_frame = MyGraph(self)
+        self.graph_frame = MyGraph(self, b)  # Replace 'buffer' with 'b'
         self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
         sensor_thread = Thread(target=sensor_thread_func, args=(b, self.graph_frame.que, Database()))
@@ -142,10 +140,10 @@ class Graph:
             self.buffer = self.buffer[-800:]
 
 class MyGraph(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, buffer):
         tk.Frame.__init__(self, parent)
         self.master = parent
-        self.que = que()
+        self.que = que(buffer)
         self.figure = plt.figure(figsize=(5, 2))
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_visible(True)
