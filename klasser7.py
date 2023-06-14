@@ -40,7 +40,7 @@ class que():
         self._empty, self._value = True, None
         self._lock = Condition()
 
-    def getData(self):
+    def getQueData(self):
         with self._lock:
             while self._empty:
                 self._lock.wait()
@@ -83,7 +83,7 @@ def sensor_thread_func(buffer, queue, db_send):
 
 def graph_thread_func(queue, canvas):
     while True:
-        data = queue.getData()
+        data = queue.getQueData()
         canvas.graph.plot_graph(data)
 
 class Graph:
@@ -116,7 +116,7 @@ class MyGraph(tk.Frame):
         self.graph = Graph(self.ax)
 
     def update_graph(self):
-        data = self.que.getData()
+        data = self.que.getQueData()
         self.graph.plot_graph(data)
         self.canvas.draw()
         self.after(1000, self.update_graph)
@@ -142,12 +142,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
