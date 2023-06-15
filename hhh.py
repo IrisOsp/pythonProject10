@@ -1,5 +1,7 @@
 from klasser7 import *
 from puls import *
+from threading import Thread
+
 class App(tk.Tk):
     def __init__(self, title, size):
         super().__init__()
@@ -117,15 +119,13 @@ class GrafBox(tk.LabelFrame):
         super().__init__(parent, text='Graf', width=200, height=5)
         self.grid(row=0, column=2, rowspan=2, sticky='nswe')
 
-        buffer = Buffer()  # Opret en Buffer-instans
-        self.graph_frame = MyGraph(self, buffer)  # Opret MyGraph med Buffer-instansen
+        self.graph_frame = MyGraph(self, b)  # Replace 'buffer' with 'b'
         self.graph_frame.pack(fill=tk.BOTH, expand=True)
 
-        sensor_thread = Thread(target=sensor_thread_func, args=(buffer, self.graph_frame.que, Database()))
+        sensor_thread = Thread(target=readSerialData, args=(b, self.graph_frame.que, Database()))
         sensor_thread.start()
 
         self.graph_frame.update_graph()
-
 
 class Graph:
     def __init__(self, ax):
@@ -145,7 +145,7 @@ class MyGraph(tk.Frame):
     def __init__(self, parent, buffer):
         tk.Frame.__init__(self, parent)
         self.master = parent
-        self.que = que(buffer)  # Opret que med Buffer-instansen
+        self.que = queue.Queue(buffer)  # Fix the line here
         self.figure = plt.figure(figsize=(5, 2))
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_visible(True)
@@ -156,7 +156,7 @@ class MyGraph(tk.Frame):
         self.graph = Graph(self.ax)
 
     def update_graph(self):
-        data = self.que.getQueData()  # Brug getQueData i stedet for getData
+        data = self.que.getData()
         self.graph.plot_graph(data)
         self.canvas.draw()
         self.after(1000, self.update_graph)

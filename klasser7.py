@@ -1,10 +1,13 @@
 import tkinter as tk
-from threading import Thread, Condition
 import sqlite3
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import threading
+import serial
+from sys import stdout
+import queue
 
 class Buffer():
     def __init__(self):
@@ -13,53 +16,15 @@ class Buffer():
         self.max = 600
 
     def addData(self, data):
-        self.list.extend(data)
-        self.size += len(data)
+        self.list.append(data)
+        self.size += 1
 
-b = Buffer()
-
-class Sensor():
     def getData(self):
-        file = open("H_data.txt", "r")
-        lines = file.readlines()
-        file.close()
+        return = self.list
 
-        data = []
-        for line in lines:
-            data.append(float(line.strip()))
-        return data
+    def getLength(self):
+        return = self.size
 
-s = Sensor()
-data = s.getData()
-b.addData(data)
-
-
-class que():
-    def __init__(self, buffer):
-        self._buffer = buffer
-        self._empty, self._value = True, None
-        self._lock = Condition()
-
-    def getQueData(self):
-        with self._lock:
-            while self._empty:
-                self._lock.wait()
-            self._empty = True
-            self._lock.notify()
-            return self._value
-
-    def putData(self, value):
-        with self._lock:
-            self._value, self._empty = value, False
-            self._lock.notify()
-
-            # Hvis que har nået sin maksimumskapacitet, henter vi værdier fra bufferen
-            if len(self._buffer.list) >= self._buffer.max:
-                data = self._buffer.list[:self._buffer.max]
-                self._buffer.list = self._buffer.list[self._buffer.max:]
-                self._buffer.size -= len(data)
-                self._value = data
-                self._empty = False
 
 class Database:
     def sendToDatabase(self, ekg):
@@ -71,20 +36,38 @@ class Database:
             c.close()
             conn.close()
         except sqlite3.Error as e:
-            print("Kommunikationsfejl 3")
+            print("Kommunikationsfejl 3", e)
 
-def sensor_thread_func(buffer, queue, db_send):
-    while True:
-        data = s.getData()
-        buffer.addData(data)
-        queue.putData(data)
-        for item in data:
-            db_send.sendToDatabase(item)
 
-def graph_thread_func(queue, canvas):
-    while True:
-        data = queue.getQueData()
-        canvas.graph.plot_graph(data)
+
+
+def readSerialData(buffer, queue, db_send):
+    arduino_port = '/dev/cu.usbmodem101'
+    baud_rate = 38400
+
+    ser = serial.Serial(arduino_port, baud_rate, timeout=1)
+
+    run = True
+    ser.setDTR(run)
+
+    while run:
+        try:
+            data = ser.readline().decode().strip()
+            if data:
+                value = float(data)
+                buffer.addData([value])
+                queue.put(value)
+                db_send.sendToDatabase(data)
+                print(value)
+            else:
+                print(".", end="")
+                stdout.flush()
+        except KeyboardInterrupt:
+            run = False
+            break
+
+    ser.setDTR(run)
+    ser.close()
 
 class Graph:
     def __init__(self, ax):
@@ -93,19 +76,19 @@ class Graph:
 
     def plot_graph(self, obs):
         self.buffer.extend(obs)
-        if len(self.buffer) >= 800:
-            x = list(range(len(self.buffer) - 800, len(self.buffer)))
-            y = self.buffer[-800:]
+        if len(self.buffer) >= 600:
+            x = list(range(len(self.buffer) - 600, len(self.buffer)))
+            y = self.buffer[-600:]
             self.ax.clear()
             self.ax.plot(x, y)
-            self.buffer = self.buffer[-800:]
+            self.buffer = self.buffer[-600:]
 
 class MyGraph(tk.Frame):
-    def __init__(self, parent, buffer):
+    def __init__(self, parent, buffer, data_queue):
         tk.Frame.__init__(self, parent)
         self.master = parent
         self.buffer = buffer
-        self.que = que(self.buffer)
+        self.data_queue = data_queue
         self.figure = plt.figure(figsize=(5, 2))
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_visible(True)
@@ -115,30 +98,36 @@ class MyGraph(tk.Frame):
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.graph = Graph(self.ax)
 
-    def update_graph(self):
-        data = self.que.getQueData()
-        self.graph.plot_graph(data)
+    def startGraphUpdate(self):
+        self.updateGraph()
+
+    def updateGraph(self):
+        try:
+            while True:
+                data = self.data_queue.get(block=False)
+                self.buffer.addData([data])
+                self.graph.plot_graph([data])
+        except queue.Empty:
+            pass
+
         self.canvas.draw()
-        self.after(1000, self.update_graph)
+        self.master.after(1000, self.updateGraph)
 
 def main():
     root = tk.Tk()
     buffer = Buffer()
-    canvas = MyGraph(root, buffer)
+    data_queue = queue.Queue()
+    canvas = MyGraph(root, buffer, data_queue)
     canvas.pack(fill=tk.BOTH, expand=True)
     db = Database()
-    queue = que(buffer)  # Send buffer til que-konstruktøren
 
-    sensor_thread = Thread(target=sensor_thread_func, args=(buffer, canvas.que, db))
-    sensor_thread.start()
+    # Start serial data reading in a separate thread
+    serial_thread = threading.Thread(target=readSerialData, args=(buffer, data_queue, db))
+    serial_thread.start()
 
-    graph_thread = Thread(target=graph_thread_func, args=(canvas.que, canvas.graph))
-    graph_thread.start()
-
-    canvas.update_graph()
+    canvas.startGraphUpdate()
 
     root.mainloop()
-
 
 if __name__ == '__main__':
     main()
