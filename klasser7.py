@@ -38,9 +38,6 @@ class Database:
         except sqlite3.Error as e:
             print("Kommunikationsfejl 3", e)
 
-
-
-
 def readSerialData(buffer, queue, db_send):
     arduino_port = '/dev/cu.usbmodem101'
     baud_rate = 38400
